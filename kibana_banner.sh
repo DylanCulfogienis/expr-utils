@@ -6,7 +6,7 @@ core_append(){
   cat << EOF
 
 /* BEGIN EXPR BANNER */
-body::after {
+html::before {
   content: "$2";
   position: fixed;
   top: 0;
@@ -17,8 +17,8 @@ body::after {
   text-align: center;
   font-weight: bold;
 }
-#kibana-body::after {
-  content: $2;
+html::after {
+  content: "$2";
   position: fixed;
   bottom: 0;
   padding: 2px;
@@ -28,23 +28,21 @@ body::after {
   text-align: center;
   font-weight: bold;
 }
-.header-global-wrapper {
-  width: 100%;
-  position: fixed;
-  top: 15px;
-  z-index: 10; }
-.header-global-wrapper + .app-wrapper:not(.hidden-chrome) {
-  top: 48px;
-  left: 48px; }
-  .header-global-wrapper + .app-wrapper:not(.hidden-chrome) .euiFlyout {
-    top: 48px;
-    height: calc(100% - 48px); }
-@media only screen and (max-width: 574px) {
-  .header-global-wrapper + .app-wrapper:not(.hidden-chrome) {
-    left: 0; } }
-@media only screen and (min-width: 575px) and (max-width: 767px) {
-  .header-global-wrapper + .app-wrapper:not(.hidden-chrome) {
-    left: 0; } }
+.euiHeader.euiHeader--fixed {
+  top: 24px;
+}
+.euiCollapsibleNav {
+  top: 73px !important;
+  height: calc(100% - 97px) !important;
+}
+.euiFlyout {
+  top: 73px !important;
+  height: calc(100% - 97px) !important;
+}
+.app-wrapper {
+  margin-top: 24px !important;
+  margin-bottom: 24px !important;
+}
 /* END EXPR BANNER */
 EOF
 }
@@ -59,10 +57,40 @@ command_help(){
   echo "$ProgName <subcommand> -h|--help"
   echo ""
   echo "Example Usage:"
-  echo "  > $ProgName set /opt/path/to/kibana-7.8.0-darwin-x86_64 red 'This page contains dynamic content -- Highest Possible Content is SECRET//NOFORN'"
+  echo "  > $ProgName set /opt/path/to/kibana-7.8.0-darwin-x86_64 '#54B399' 'This page contains dynamic content -- Highest Possible Content is CUI'"
+  echo "  > $ProgName set /opt/path/to/kibana-7.8.0-darwin-x86_64 '#BD271E' 'This page contains dynamic content -- Highest Possible Content is SECRET//NOFORN'"
   echo "  > $ProgName remove \$KIB_HOME"
   echo ""
 } 
+
+command_remove(){
+  case $1 in
+    "" | "-h" | "--help")
+      echo "$ProgName remove <kibana_dir>"
+      echo "  <kibana_dir> - Path Kibana. Usually \$KIB_HOME."
+      ;; *)
+      css_dir="$1/built_assets/css/"
+      if [ -f "$css_dir/core.dark.css.bak" ] && [ -f "$css_dir/core.light.css.bak" ]; then
+        rm "$css_dir/core.dark.css"
+        rm "$css_dir/core.light.css"
+        mv "$css_dir/core.dark.css.bak" "$css_dir/core.dark.css"
+        mv "$css_dir/core.light.css.bak" "$css_dir/core.light.css"
+        echo "Banner removed."
+      else
+        echo "No existing banner to remove."
+      fi
+  esac
+}
+
+set_banner(){
+  command_remove $1
+  css_dir="$1/built_assets/css/"
+  cp "$css_dir/core.dark.css" "$css_dir/core.dark.css.bak"
+  cp "$css_dir/core.light.css" "$css_dir/core.light.css.bak"
+  echo "$(core_append $2 "$3")" >> "$css_dir/core.dark.css"
+  echo "$(core_append $2 "$3")" >> "$css_dir/core.light.css"
+  echo "Banner added."
+}
 
 command_set(){
   case $1 in
@@ -73,20 +101,8 @@ command_set(){
       echo "  <message> - The message to display in the banner. Can be any string, such as 'UNCLASS'"
       ;;
     *)
-      echo "$(core_append $2 $3)" >> "$1/built_assets/css/core.dark.css"
-      echo "$(core_append $2 $3)" >> "$1/built_assets/css/core.light.css"
+      set_banner "$@"
       ;;
-  esac
-}
-
-command_remove(){
-  case $1 in
-    "" | "-h" | "--help")
-      echo "$ProgName remove <kibana_dir>"
-      echo "  <kibana_dir> - Path Kibana. Usually \$KIB_HOME."
-      ;;
-    *)
-      sed '/\/\* BEGIN EXPR BANNER \*\//,/\/\* END EXPR BANNER \*\//d' $1
   esac
 }
 
@@ -97,7 +113,7 @@ case $subcommand in
     ;;
   *)
   shift
-  command_${subcommand} $@
+  command_${subcommand} "$@"
   if [ $? = 127 ]; then
     echo "Error: '$subcommand' is not a known subcommand." >&2
     echo "  Run '$ProgName --help' for a list of known subcommands." >&2
