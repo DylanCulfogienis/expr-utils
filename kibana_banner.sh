@@ -4,6 +4,7 @@ ProgName=$(basename $0)
 
 core_append(){
   cat << EOF
+
 /* BEGIN EXPR BANNER */
 body::after {
   content: "$2";
@@ -85,7 +86,7 @@ command_remove(){
       echo "  <kibana_dir> - Path Kibana. Usually \$KIB_HOME."
       ;;
     *)
-      sed '/\/\* BEGIN EXPR BANNER \*\//,/\/\* END EXPR BANNER \*\/d' $1
+      sed '/\/\* BEGIN EXPR BANNER \*\//,/\/\* END EXPR BANNER \*\//d' $1
   esac
 }
 
