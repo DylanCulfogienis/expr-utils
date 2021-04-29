@@ -2,6 +2,8 @@
 
 ProgName=$(basename $0)
 
+# Banner CSS to append to Kibana files.
+# Note: Newline after `cat << EOF` is intentional. Do not remove.
 core_append(){
   cat << EOF
 
@@ -44,6 +46,7 @@ html::after {
 EOF
 }
 
+# Top-level help command
 command_help(){
   echo "Usage: $ProgName <subcommand> [options]"
   echo "Subcommands:"
@@ -60,6 +63,7 @@ command_help(){
   echo ""
 } 
 
+## Remove banner from Kibana, moving the old css out to backup files.
 command_remove(){
   case $1 in
     "" | "-h" | "--help")
@@ -79,17 +83,7 @@ command_remove(){
   esac
 }
 
-set_banner(){
-  command_remove $1
-  css_dir="$1/built_assets/css/"
-  cp "$css_dir/core.dark.css" "$css_dir/core.dark.css.bak"
-  cp "$css_dir/core.light.css" "$css_dir/core.light.css.bak"
-  shift
-  echo "$(core_append "$@")" >> "$css_dir/core.dark.css"
-  echo "$(core_append "$@")" >> "$css_dir/core.light.css"
-  echo "Banner added."
-}
-
+# Command to set/update the banner.
 command_set(){
   case $1 in
     "" | "-h" | "--help")
@@ -100,11 +94,19 @@ command_set(){
       echo "  <message> - The message to display in the banner. Can be any string, such as 'UNCLASS'"
       ;;
     *)
-      set_banner "$@"
+      command_remove $1
+      css_dir="$1/built_assets/css/"
+      cp "$css_dir/core.dark.css" "$css_dir/core.dark.css.bak"
+      cp "$css_dir/core.light.css" "$css_dir/core.light.css.bak"
+      shift
+      echo "$(core_append "$@")" >> "$css_dir/core.dark.css"
+      echo "$(core_append "$@")" >> "$css_dir/core.light.css"
+      echo "Banner added."
       ;;
   esac
 }
 
+## Top-level shell script stuff.
 subcommand=$1
 case $subcommand in
   "" | "-h" | "--help")
