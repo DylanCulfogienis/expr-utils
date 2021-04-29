@@ -6,27 +6,24 @@ core_append(){
   cat << EOF
 
 /* BEGIN EXPR BANNER */
-html::before {
-  content: "$2";
+html::before,html::after {
+  background-color: $1;
+  color: $2;
+  content: "$3";
   position: fixed;
-  top: 0;
   padding: 2px;
   z-index: 99999999;
   width: 100%;
-  background-color: $1;
   text-align: center;
   font-weight: bold;
 }
+html::before {
+  top: 0;
+  box-shadow: 0 2px 2px -1px rgba(152, 162, 179, 0.3), 0 1px 5px -2px rgba(152, 162, 179, 0.3);
+}
 html::after {
-  content: "$2";
-  position: fixed;
   bottom: 0;
-  padding: 2px;
-  z-index: 99999999;
-  width: 100%;
-  background-color: $1;
-  text-align: center;
-  font-weight: bold;
+  box-shadow: 0 -2px 2px -1px rgba(152, 162, 179, 0.3), 0 -1px 5px -2px rgba(152, 162, 179, 0.3);
 }
 .euiHeader.euiHeader--fixed {
   top: 24px;
@@ -87,17 +84,19 @@ set_banner(){
   css_dir="$1/built_assets/css/"
   cp "$css_dir/core.dark.css" "$css_dir/core.dark.css.bak"
   cp "$css_dir/core.light.css" "$css_dir/core.light.css.bak"
-  echo "$(core_append $2 "$3")" >> "$css_dir/core.dark.css"
-  echo "$(core_append $2 "$3")" >> "$css_dir/core.light.css"
+  shift
+  echo "$(core_append "$@")" >> "$css_dir/core.dark.css"
+  echo "$(core_append "$@")" >> "$css_dir/core.light.css"
   echo "Banner added."
 }
 
 command_set(){
   case $1 in
     "" | "-h" | "--help")
-      echo "$ProgName set <kibana_dir> <color> <message>"
+      echo "$ProgName set <kibana_dir> <background_color> <text_color> <message>"
       echo "  <kibana_dir> - Path Kibana. Usually \$KIB_HOME."
-      echo "  <color> - a valid CSS3 color, such as 'red' or '#ababab'"
+      echo "  <background_color> - a valid CSS3 color, applied to banner background. Recommend using either '#54B399' (<= CUI) or '#BD271E' (>= SECRET)."
+      echo "  <text_color> - a valid CSS3 color, applied to banner content text. Recommend using either 'auto' or 'white'."
       echo "  <message> - The message to display in the banner. Can be any string, such as 'UNCLASS'"
       ;;
     *)
